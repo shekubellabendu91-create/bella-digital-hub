@@ -73,7 +73,15 @@ async function createInvoice(request, env) {
   });
   const data = await response.json().catch(() => ({}));
   if (!response.ok || !data.invoice_url) {
-    return json({ error: "NOWPayments could not create the invoice. Check account settings and minimum amounts." }, 502);
+    // Return only the provider's non-secret diagnostic fields so checkout failures can be fixed.
+    const providerMessage = typeof data.message === "string" ? data.message :
+      typeof data.error === "string" ? data.error : "No diagnostic message returned.";
+    return json({
+      error: "NOWPayments invoice creation failed.",
+      providerStatus: response.status,
+      providerMessage: providerMessage.slice(0, 300),
+      providerCode: typeof data.code === "string" || typeof data.code === "number" ? data.code : undefined
+    }, 502);
   }
   const record = {
     orderId, product: body.product, productName: product.name, amountUsd: product.amount,
