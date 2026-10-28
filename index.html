@@ -82,7 +82,23 @@ if(paymentForm){
    });
    const data=await response.json().catch(()=>({}));
    if(!response.ok||!data.invoiceUrl) throw new Error(data.error||'Invoice could not be created. Please contact Bella Digital Hub before paying.');
-   result.textContent='Invoice created for 
+   result.textContent='Invoice created for $'+data.amountUsd+'. Order reference: '+data.orderId+'. Open the secure NOWPayments checkout to continue.';
+   const link=document.createElement('a');
+   link.className='btn primary';
+   link.href=data.invoiceUrl;
+   link.target='_blank';
+   link.rel='noopener noreferrer';
+   link.textContent='Continue to NOWPayments checkout →';
+   link.style.marginTop='12px';
+   result.appendChild(document.createElement('br'));
+   result.appendChild(link);
+  }catch(err){
+   result.textContent=(err&&err.message)||'Could not connect to the payment service. Please contact Bella Digital Hub and do not retry payment until the issue is resolved.';
+  }finally{
+   button.disabled=false;
+  }
+ });
+}
 let studioDraft='';
 document.getElementById('studioForm').addEventListener('submit',function(e){e.preventDefault();const type=document.getElementById('studioService').value,tone=document.getElementById('studioTone').value,biz=document.getElementById('studioBusiness').value.trim(),aud=document.getElementById('studioAudience').value.trim()||'your target customers',details=document.getElementById('studioDetails').value.trim();const intro=tone==='Friendly'?'Hey '+aud+'!':tone==='Bold and persuasive'?'Ready for something worth checking out, '+aud+'?':tone==='Simple and informative'?'Here is an update for '+aud+'.':'Attention '+aud+':';let out='BELLA DIGITAL HUB — AUTOMATIC DRAFT\nBusiness/topic: '+biz+'\nTone: '+tone+'\n\n';if(type==='captions'){out+='SOCIAL MEDIA CAPTION OPTIONS\n\n1. '+intro+' '+biz+' has something to share: '+details+'. Send us a message to learn more.\n\n2. Looking for '+biz+'? '+details+'. Get in touch today with your questions.\n\n3. A quick update from '+biz+': '+details+'. Save this post or share it with someone who may find it useful.\n\nSuggested call to action: Message us for details.\nSuggested hashtags: #'+biz.replace(/[^a-z0-9]/gi,'')+' #SmallBusiness #NewUpdate';}else if(type==='promo'){out+='PROMOTIONAL FLYER TEXT\n\n'+biz.toUpperCase()+'\n'+details.toUpperCase()+'\n\nFor: '+aud+'\nInterested? Contact us for more information.\n\nDESIGN NOTE: Use one clear headline, a readable font, strong contrast, and one clear contact method. Add only verified prices, dates, and contact details.';}else if(type==='video'){out+='SHORT-VIDEO SCRIPT (20–30 SECONDS)\n\nHOOK (0–4s): '+intro+'\n\nMAIN MESSAGE (4–18s): '+biz+' — '+details+'.\n\nCALL TO ACTION (18–25s): Want to know more? Send us a message or follow for updates.\n\nSHOT IDEAS: Show the product/service, one useful detail, and a clear final screen with your verified contact details.';}else if(type==='calendar'){out+='7-DAY CONTENT PLAN\n\nDay 1 — Introduction: Introduce '+biz+' and who it helps.\nDay 2 — Helpful tip: Share one practical tip for '+aud+'.\nDay 3 — Product/service: Explain this offer: '+details+'.\nDay 4 — Behind the scenes: Show how the product or service is prepared.\nDay 5 — FAQ: Answer one real question customers often ask.\nDay 6 — Trust: Share a genuine customer review only with permission, or explain your process.\nDay 7 — Reminder: Summarise the offer and invite people to ask questions.\n\nUse your own photos and verify every claim before posting.';}else{out+='BUSINESS BIO\n\n'+biz+' helps '+aud+' with '+details+'.\n\nOUR OFFER\nWe aim to provide clear information, friendly service, and an easy way to ask questions. Contact us to discuss availability, pricing, and the right option for your needs.\n\nPROFILE CALL TO ACTION: Send us a message to learn more.';}out+='\n\nGenerated draft only — review and customise before publishing.';studioDraft=out;const result=document.getElementById('studioResult');result.textContent=out;result.style.display='block';document.getElementById('studioActions').style.display='flex';result.scrollIntoView({behavior:'smooth',block:'nearest'});});
 document.getElementById('downloadStudio').addEventListener('click',function(){if(!studioDraft)return;const blob=new Blob([studioDraft],{type:'text/plain;charset=utf-8'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='bella-digital-hub-draft.txt';document.body.appendChild(a);a.click();a.remove();URL.revokeObjectURL(url);});
