@@ -2,6 +2,6 @@ name = "bella-digital-hub-payments"
 main = "index.js"
 compatibility_date = "2026-10-28"
 
+# Cloudflare Workers Builds can provision this KV namespace during deployment.
 [[kv_namespaces]]
 binding = "ORDERS"
-id = "REPLACE_WITH_CLOUDFLARE_KV_NAMESPACE_ID"
