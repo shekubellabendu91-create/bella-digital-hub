@@ -9,7 +9,12 @@ const CATALOG = {
 function json(data, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "access-control-allow-origin": "https://shekubellabendu91-create.github.io",
+      "vary": "Origin"
+    }
   });
 }
 function sortDeep(value) {
@@ -39,6 +44,10 @@ async function verifyIpn(payload, signature, secret) {
   return constantTimeEqual(expected.toLowerCase(), signature.toLowerCase());
 }
 async function createInvoice(request, env) {
+  const origin = request.headers.get("origin");
+  if (origin && origin !== "https://shekubellabendu91-create.github.io") {
+    return json({ error: "Origin not allowed." }, 403);
+  }
   if (!env.NOWPAYMENTS_API_KEY || !env.IPN_SECRET || !env.ORDERS) {
     return json({ error: "Payment backend is not configured yet." }, 503);
   }
@@ -47,13 +56,13 @@ async function createInvoice(request, env) {
   const product = CATALOG[body.product];
   if (!product) return json({ error: "Choose a valid product or service." }, 400);
   const orderId = "BDH-" + crypto.randomUUID();
-  const origin = new URL(request.url).origin;
+  const workerOrigin = new URL(request.url).origin;
   const payload = {
     price_amount: product.amount,
     price_currency: "usd",
     order_id: orderId,
     order_description: product.name,
-    ipn_callback_url: origin + "/webhook/nowpayments",
+    ipn_callback_url: workerOrigin + "/webhook/nowpayments",
     success_url: "https://shekubellabendu91-create.github.io/bella-digital-hub/?payment=return",
     cancel_url: "https://shekubellabendu91-create.github.io/bella-digital-hub/?payment=cancelled"
   };
